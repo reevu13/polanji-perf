@@ -1,3 +1,10 @@
+# k6 outputs
+*.json
+*.csv
+
+# dotenvs
+.env
+
 # Logs
 logs
 *.log
