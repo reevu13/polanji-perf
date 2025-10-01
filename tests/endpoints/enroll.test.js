@@ -13,14 +13,24 @@ export function setup() {
   const courses = http.get(`${BASE_URL}/courses`, { headers: auth.headers }).json();
   const course = pickFirst(courses, c => c?.id);
   if (!course) fail('No course found for enrollment');
-  return { baseUrl: BASE_URL, headers: auth.headers, course_id: course.id };
+  return {
+    baseUrl: BASE_URL,
+    headers: auth.headers,
+    course_id: course.id,
+    user_id: auth.userId,
+  };
 }
 
 export default function (ctx) {
   const res = http.post(
     `${ctx.baseUrl}/enroll`,
-    JSON.stringify({ course_id: ctx.course_id }),
+    JSON.stringify({ course_id: ctx.course_id, user_id: ctx.user_id }),
     { headers: { ...ctx.headers, 'Content-Type': 'application/json' } }
   );
-  check(res, { 'enroll ok': r => r.status === 200 || r.status === 201 });
+  check(res, {
+    'enroll ok': r =>
+      r.status === 200 ||
+      r.status === 201 ||
+      r.status === 409, // already enrolled is fine for repeated perf runs
+  });
 }

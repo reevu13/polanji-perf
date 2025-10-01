@@ -9,11 +9,11 @@ export { options };
 export function setup() {
   const { BASE_URL, EMAIL, PASSWORD } = __ENV;
   const auth = login(BASE_URL, EMAIL, PASSWORD);
-  return { baseUrl: BASE_URL, headers: auth.headers };
+  return { baseUrl: BASE_URL, headers: auth.headers, user_id: auth.userId };
 }
 
 export default function (ctx) {
-  const { baseUrl, headers } = ctx;
+  const { baseUrl, headers, user_id } = ctx;
 
   // 1) List courses → pick a real one
   const coursesRes = http.get(`${baseUrl}/courses`, { headers });
@@ -24,13 +24,13 @@ export default function (ctx) {
   // 2) Enroll
   const enrollRes = http.post(
     `${baseUrl}/enroll`,
-    JSON.stringify({ course_id: course.id }),
+    JSON.stringify({ course_id: course.id, user_id }),
     { headers: { ...headers, 'Content-Type': 'application/json' } }
   );
   check(enrollRes, { enrolled: r => r.status === 200 || r.status === 201 });
 
   // 3) Update progress (use realistic values)
-  const progressRes = http.post(
+  const progressRes = http.put(
     `${baseUrl}/courses/update_progress`,
     JSON.stringify({ course_id: course.id, progress: 25 }),
     { headers: { ...headers, 'Content-Type': 'application/json' } }

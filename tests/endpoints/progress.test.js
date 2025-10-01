@@ -2,20 +2,38 @@ import http from 'k6/http';
 import { check, fail } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
+import { pickFirst } from '../../src/utils.js';
 
 export { options };
 
 export function setup() {
   const { BASE_URL, EMAIL, PASSWORD } = __ENV;
   const auth = login(BASE_URL, EMAIL, PASSWORD);
-  // Assume you already know a stable course_id from /courses:
-  const course_id = JSON.parse(open(__ENV.COURSE_ID_JSON || 'null') || 'null') || null; // optional pattern
-  return { baseUrl: BASE_URL, headers: auth.headers, course_id };
+  const coursesRes = http.get(`${BASE_URL}/courses`, { headers: auth.headers });
+  check(coursesRes, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
+  const course = pickFirst(coursesRes.json(), c => c?.id);
+  if (!course?.id) fail('No course found for progress test');
+
+  const enrollRes = http.post(
+    `${BASE_URL}/enroll`,
+    JSON.stringify({ course_id: course.id, user_id: auth.userId }),
+    { headers: { ...auth.headers, 'Content-Type': 'application/json' } }
+  );
+  check(enrollRes, {
+    enrolled: r => r.status === 200 || r.status === 201 || r.status === 409,
+  });
+
+  return {
+    baseUrl: BASE_URL,
+    headers: auth.headers,
+    course_id: course.id,
+    user_id: auth.userId,
+  };
 }
 
 export default function (ctx) {
   // For a self-contained test, you can fetch a course again here too.
-  const progressRes = http.post(
+  const progressRes = http.put(
     `${ctx.baseUrl}/courses/update_progress`,
     JSON.stringify({ course_id: ctx.course_id, progress: 25 }),
     { headers: { ...ctx.headers, 'Content-Type': 'application/json' } }

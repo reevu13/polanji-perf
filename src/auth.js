@@ -17,8 +17,12 @@ export function login(baseUrl, email, password) {
   const body = res.json();
   const token = body?.access_token;
   const type  = (body?.token_type || 'bearer').toLowerCase();
+  const user  = body?.user;
 
   if (!token) fail('No access_token in /log_in response');
+  if (!user?.id) fail('No user.id in /log_in response');
 
-  return { headers: { Authorization: `${type === 'bearer' ? 'Bearer' : type} ${token}` } };
+  const authHeader = `${type === 'bearer' ? 'Bearer' : type} ${token}`;
+
+  return { headers: { Authorization: authHeader }, user, userId: user.id };
 }
