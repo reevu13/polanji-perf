@@ -10,13 +10,26 @@ function logResult(name, ok, detail) {
 
 async function main() {
   const {
-    PGHOST = '206.189.138.9',
-    PGDATABASE = 'smart_learning',
-    PGUSER = 'postgres',
-    PGPASSWORD = '5wyil5uYsr1W',
-    PGPORT = '5432',
+    PGHOST,
+    PGDATABASE,
+    PGUSER,
+    PGPASSWORD,
+    PGPORT,
     EMAIL,
   } = process.env;
+
+  if (!PGHOST || !PGDATABASE || !PGUSER || !PGPASSWORD) {
+    console.error('PGHOST, PGDATABASE, PGUSER, and PGPASSWORD environment variables are required for DB validation.');
+    process.exit(1);
+  }
+
+  const dbHost = PGHOST.trim();
+  const dbName = PGDATABASE.trim();
+  const dbUser = PGUSER.trim();
+  const dbPassword = PGPASSWORD.trim();
+  const rawPort = (PGPORT || '5432').trim();
+  const parsedPort = Number(rawPort);
+  const dbPort = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 5432;
 
   if (!EMAIL) {
     console.error('EMAIL environment variable is required for DB validation.');
@@ -24,11 +37,11 @@ async function main() {
   }
 
   const client = new Client({
-    host: PGHOST,
-    database: PGDATABASE,
-    user: PGUSER,
-    password: PGPASSWORD,
-    port: Number(PGPORT),
+    host: dbHost,
+    database: dbName,
+    user: dbUser,
+    password: dbPassword,
+    port: dbPort,
     ssl: false,
   });
 

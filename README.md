@@ -1,109 +1,60 @@
 # Polanji Performance Tests (k6)
 
-## Scope (per assignment PDF)
+## Scope
 - Endpoints: /topics, /courses, /enroll, /courses/update_progress, /courses/{course_id}/sections/{section_index}/quiz-complete
 - Workflow: Course completion (sequence; pass live IDs between steps)
-- Test types: Load, Stress, Spike, Soak
-- Limits: 5–20 VUs; 1–3 minutes
-- No hardcoded credentials; modular; scalable; CI optional; Docker optional
+- Profiles: Load, Stress, Spike, Soak (5–20 VUs, 1–3 minutes)
+- Framework: modular k6 scripts, reusable helpers, DB validation, Docker + CI ready
 
-## Prereqs
+## Prerequisites
 
-**Arch**
-```bash
-sudo pacman -Syu
-sudo pacman -S k6 git curl jq nodejs npm
-```
-
-**Debian / Ubuntu**
-```bash
-sudo apt-get update
-sudo apt-get install -y gnupg2 ca-certificates curl git jq nodejs npm
-curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-sudo apt-get update && sudo apt-get install -y k6
-```
-
-**macOS (Homebrew)**
-```bash
-brew update
-brew install k6 node jq git
-```
-
-**Windows (PowerShell, chocolatey)**
-```powershell
-choco install -y git nodejs jq
-choco install -y k6
-```
+| Platform | Commands |
+| --- | --- |
+| Arch / Manjaro | `sudo pacman -Syu`<br>`sudo pacman -S k6 git curl jq nodejs npm` |
+| Debian / Ubuntu | `sudo apt-get update`<br>`sudo apt-get install -y gnupg2 ca-certificates curl git jq nodejs npm`<br>`curl -fsSL https://dl.k6.io/key.gpg \| sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg`<br>`echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \| sudo tee /etc/apt/sources.list.d/k6.list`<br>`sudo apt-get update && sudo apt-get install -y k6` |
+| macOS (Homebrew) | `brew update`<br>`brew install k6 node jq git` |
+| Windows (PowerShell + chocolatey) | `choco install -y git nodejs jq`<br>`choco install -y k6` |
 
 ## Running the test suite
 
-Export real credentials via `BASE_URL`, `EMAIL`, and `PASSWORD`, then call `k6 run` directly for each profile:
-
-- **Load**
-
-  ```bash
-  BASE_URL=https://api.polanji.com EMAIL=you@example.com PASSWORD=secret \
-    k6 run --vus 10 --duration 2m tests/workflows/courseCompletion.workflow.js
-  ```
-
-- **Stress**
-
-  ```bash
-  BASE_URL=https://api.polanji.com EMAIL=you@example.com PASSWORD=secret \
-    k6 run --stage 30s:5 --stage 1m:20 --stage 30s:5 tests/workflows/courseCompletion.workflow.js
-  ```
-
-- **Spike**
-
-  ```bash
-  BASE_URL=https://api.polanji.com EMAIL=you@example.com PASSWORD=secret \
-    k6 run --stage 5s:1 --stage 10s:20 --stage 20s:1 tests/endpoints/topics.test.js
-  ```
-
-- **Soak**
-
-  ```bash
-  BASE_URL=https://api.polanji.com EMAIL=you@example.com PASSWORD=secret \
-    k6 run --vus 5 --duration 3m tests/endpoints/courses.test.js
-  ```
-
-`k6` treats staged ramps as mutually exclusive with fixed-duration execution, so do not add `--duration` when using `--stage`.
-
-To execute the full catalogue (all endpoint tests plus workflows) in one sweep, either loop in Bash:
+Set your credentials once per shell session:
 
 ```bash
-while read file; do
-  BASE_URL=https://api.polanji.com EMAIL=you@example.com PASSWORD=secret \
-    k6 run "$file"
-done < <(find tests -maxdepth 2 -type f \( -name '*.test.js' -o -name '*.workflow.js' \) | sort)
+export BASE_URL=https://api.polanji.com
+export EMAIL=<your_user_email>
+export PASSWORD=<your_password>
 ```
 
-…or use the convenience wrapper (which simply invokes `k6 run` for every file and forwards any extra flags):
+### Single profile runs
 
-```bash
-BASE_URL=https://api.polanji.com EMAIL=you@example.com PASSWORD=secret \
-  scripts/run-all-tests.sh [k6 options]
-```
+| Profile | Command |
+| --- | --- |
+| Load  | `k6 run --vus 10 --duration 2m tests/workflows/courseCompletion.workflow.js` |
+| Stress | `k6 run --stage 30s:5 --stage 1m:20 --stage 30s:5 tests/workflows/courseCompletion.workflow.js` |
+| Spike | `k6 run --stage 5s:1 --stage 10s:20 --stage 20s:1 tests/endpoints/topics.test.js` |
+| Soak  | `k6 run --vus 5 --duration 3m tests/endpoints/courses.test.js` |
 
-Or run everything—including DB validation—with a single helper:
+> `k6` scheduling is either ramped (`--stage`) or fixed-duration (`--duration`); avoid combining them in one command.
 
-```bash
-BASE_URL=https://api.polanji.com EMAIL=you@example.com PASSWORD=secret \
-  scripts/run-full-suite.sh
-```
+### Run every script
 
-The script executes load, stress, spike, and soak profiles; runs the remaining endpoint smoke tests; then calls the DB validator below.
+- **Bash loop** – `find tests -maxdepth 2 -type f \( -name '*.test.js' -o -name '*.workflow.js' \) | sort | xargs -I{} k6 run {}`
+- **Wrapper** – `scripts/run-all-tests.sh [k6 options]`
+- **Full suite + DB validation** – `scripts/run-full-suite.sh`
 
 ## Database validation
 
 Once the HTTP tests have run, validate the persisted state directly against PostgreSQL:
 
 ```bash
-EMAIL=you@example.com node scripts/db-validate.js
+export PGHOST=<your_db_host>
+export PGDATABASE=<your_db_name>
+export PGUSER=<your_db_user>
+export PGPASSWORD=<your_db_password>
+EMAIL=<your_user_email> node scripts/db-validate.js
 ```
 
-The script uses the shared credentials (or override via `PGHOST`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `PGPORT`) to assert:
+`PGHOST`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` are required. Override them for other environments. The script asserts:
 - `topics`/`courses` tables contain data.
 - The user exists and has an enrollment in `course_interactions`.
 - Course progress is recorded and quiz completion is stored in `course_section_quiz_progress`.
@@ -121,12 +72,12 @@ Build the container image (includes Node.js, k6, and dependencies) and run the f
 docker build -t polanji-perf .
 docker run --rm \
   -e BASE_URL=https://api.polanji.com \
-  -e EMAIL=you@example.com \
-  -e PASSWORD=secret \
-  -e PGHOST=206.189.138.9 \
-  -e PGDATABASE=smart_learning \
-  -e PGUSER=postgres \
-  -e PGPASSWORD=5wyil5uYsr1W \
+  -e EMAIL=<your_user_email> \
+  -e PASSWORD=<your_password> \
+  -e PGHOST=<your_db_host> \
+  -e PGDATABASE=<your_db_name> \
+  -e PGUSER=<your_db_user> \
+  -e PGPASSWORD=<your_db_password> \
   polanji-perf
 ```
 
@@ -143,6 +94,5 @@ The workflow in `.github/workflows/performance.yml` builds the Docker image and 
 - `PERF_DB_NAME`
 - `PERF_DB_USER`
 - `PERF_DB_PASSWORD`
-- `PERF_DB_PORT` (optional, defaults to 5432)
 
 The job invokes the same containerized command shown above, ensuring consistent results locally and in CI.

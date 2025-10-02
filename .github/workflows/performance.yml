@@ -17,7 +17,6 @@ jobs:
       PGDATABASE: ${{ secrets.PERF_DB_NAME }}
       PGUSER: ${{ secrets.PERF_DB_USER }}
       PGPASSWORD: ${{ secrets.PERF_DB_PASSWORD }}
-      PGPORT: ${{ secrets.PERF_DB_PORT }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,5 +33,4 @@ jobs:
             -e PGDATABASE \
             -e PGUSER \
             -e PGPASSWORD \
-            -e PGPORT \
             polanji-perf
