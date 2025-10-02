@@ -22,7 +22,7 @@ if (files.length === 0) {
 }
 
 const formatMs = value =>
-  value != null ? `${(Number(value) * 1000).toFixed(2)} ms` : 'n/a';
+  value != null ? `${Number(value).toFixed(2)} ms` : 'n/a';
 
 const formatRate = value =>
   value != null ? `${(Number(value) * 100).toFixed(2)}%` : 'n/a';
@@ -32,16 +32,59 @@ const sections = files.map(file => {
   const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
   const metrics = data.metrics || {};
 
-  const httpDuration = metrics.http_req_duration || {};
-  const httpFailed = metrics.http_req_failed || {};
+  const pickMetric = (...names) => {
+    for (const name of names) {
+      if (metrics[name]) return { name, metric: metrics[name] };
+    }
+    return { name: names[names.length - 1], metric: {} };
+  };
+
+  const { name: durationMetricName, metric: httpDuration } = pickMetric(
+    'http_req_duration{expected_response:true}',
+    'http_req_duration'
+  );
+  const { name: failedMetricName, metric: httpFailed } = pickMetric(
+    'http_req_failed{expected_response:true}',
+    'http_req_failed'
+  );
   const httpReqs = metrics.http_reqs || {};
   const iterations = metrics.iterations || {};
 
   const thresholds = [];
+  const evaluateThreshold = (metricName, metric, expr) => {
+    const match = expr.match(/^([^<>=!]+)\s*(<=|>=|<|>)\s*(.+)$/);
+    if (!match) return { metric: metricName, name: expr, passed: null };
+    const [, rawKey, operator, rhsRaw] = match;
+    const key = rawKey.trim();
+    const rhs = Number(rhsRaw.trim());
+    const lhs = key === 'rate' ? Number(metric.value) : Number(metric[key]);
+    if (!Number.isFinite(lhs) || !Number.isFinite(rhs)) {
+      return { metric: metricName, name: expr, passed: null, lhs, rhs };
+    }
+    let passed;
+    switch (operator) {
+      case '<':
+        passed = lhs < rhs;
+        break;
+      case '<=':
+        passed = lhs <= rhs;
+        break;
+      case '>':
+        passed = lhs > rhs;
+        break;
+      case '>=':
+        passed = lhs >= rhs;
+        break;
+      default:
+        passed = null;
+    }
+    return { metric: metricName, name: expr, passed, lhs, rhs };
+  };
+
   for (const [metricName, metric] of Object.entries(metrics)) {
     if (metric.thresholds) {
-      for (const [name, passed] of Object.entries(metric.thresholds)) {
-        thresholds.push({ metric: metricName, name, passed: Boolean(passed) });
+      for (const expr of Object.keys(metric.thresholds)) {
+        thresholds.push(evaluateThreshold(metricName, metric, expr));
       }
     }
   }
@@ -85,15 +128,20 @@ const htmlSections = sections
     const reqs = section.httpReqs;
     const iter = section.iterations;
 
-    const thresholdRows = section.thresholds
-      .map(
-        t =>
-          `<tr><td>${t.metric}</td><td>${t.name}</td><td><span class="badge ${
-            t.passed ? 'pass' : 'fail'
-          }">${t.passed ? 'pass' : 'fail'}</span></td></tr>`
-      )
-      .join('') ||
-      '<tr><td colspan="3"><small>No thresholds defined</small></td></tr>';
+    const thresholdRows = section.thresholds.length
+      ? section.thresholds
+          .map(t => {
+            const status =
+              t.passed === true ? 'pass' : t.passed === false ? 'fail' : 'n/a';
+            const badgeClass =
+              t.passed === true ? 'pass' : t.passed === false ? 'fail' : '';
+            const actual = Number.isFinite(t.lhs) ? t.lhs.toFixed(3) : 'n/a';
+            return `<tr><td>${t.metric}</td><td>${t.name}</td><td><span class="badge ${badgeClass}">${status}</span>${
+              actual !== 'n/a' ? `<small> (actual ${actual})</small>` : ''
+            }</td></tr>`;
+          })
+          .join('')
+      : '<tr><td colspan="3"><small>No thresholds defined</small></td></tr>';
 
     return `
       <section>
@@ -112,8 +160,7 @@ const htmlSections = sections
           </thead>
           <tbody>
             ${thresholdRows}
-          </tbody>
-        </table>
+          </table>
       </section>
     `;
   })

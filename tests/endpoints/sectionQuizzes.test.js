@@ -52,20 +52,12 @@ export default function (ctx) {
   }
 
   for (const sectionIndex of section_indices) {
-    const candidates = [
-      `${baseUrl}/section-quizzes?course_id=${course_id}&section_index=${sectionIndex}`,
-      `${baseUrl}/section-quizzes?courseId=${course_id}&sectionIndex=${sectionIndex}`,
-      `${baseUrl}/courses/${course_id}/sections/${sectionIndex}/quizzes`,
-      `${baseUrl}/courses/${course_id}/sections/${sectionIndex}/section-quizzes`,
-    ];
-
-    for (const url of candidates) {
-      const res = http.get(url, { headers, tags: { endpoint: url } });
-      if (res.status >= 200 && res.status < 300) {
-        check(res, { 'section-quizzes 2xx': r => r.status >= 200 && r.status < 300 });
-        res.json();
-        return;
-      }
+    const url = `${baseUrl}/section-quizzes?course_id=${course_id}&section_index=${sectionIndex}`;
+    const res = http.get(url, { headers, tags: { endpoint: url } });
+    if (res.status >= 200 && res.status < 300) {
+      check(res, { 'section-quizzes 2xx': r => r.status >= 200 && r.status < 300 });
+      res.json();
+      return;
     }
   }
   // No section quizzes found; treat as skip rather than hard failure

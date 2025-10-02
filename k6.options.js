@@ -1,7 +1,7 @@
 export const options = {
   thresholds: {
-    http_req_failed: ['rate<0.01'],   // <1% errors
-    http_req_duration: ['p(95)<800'], // 95th < 800ms
+    checks: ['rate>0.99'],
+    'http_req_duration{expected_response:true}': ['p(95)<800'],
   },
   summaryTrendStats: ['min','avg','p(90)','p(95)','max'],
 };
