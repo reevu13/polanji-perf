@@ -1,0 +1,38 @@
+name: Performance Suite
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ secrets.PERF_BASE_URL }}
+      EMAIL: ${{ secrets.PERF_EMAIL }}
+      PASSWORD: ${{ secrets.PERF_PASSWORD }}
+      PGHOST: ${{ secrets.PERF_DB_HOST }}
+      PGDATABASE: ${{ secrets.PERF_DB_NAME }}
+      PGUSER: ${{ secrets.PERF_DB_USER }}
+      PGPASSWORD: ${{ secrets.PERF_DB_PASSWORD }}
+      PGPORT: ${{ secrets.PERF_DB_PORT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build performance test image
+        run: docker build -t polanji-perf .
+
+      - name: Run performance + DB validation suite
+        run: |
+          docker run --rm \
+            -e BASE_URL \
+            -e EMAIL \
+            -e PASSWORD \
+            -e PGHOST \
+            -e PGDATABASE \
+            -e PGUSER \
+            -e PGPASSWORD \
+            -e PGPORT \
+            polanji-perf

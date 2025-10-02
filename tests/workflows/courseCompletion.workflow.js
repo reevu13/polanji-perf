@@ -15,13 +15,33 @@ export function setup() {
 export default function (ctx) {
   const { baseUrl, headers, user_id } = ctx;
 
-  // 1) List courses → pick a real one
+  // 1) Courses → pick one
   const coursesRes = http.get(`${baseUrl}/courses`, { headers });
   check(coursesRes, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
   const course = pickFirst(coursesRes.json(), c => c?.id);
   if (!course?.id) fail('No course_id found');
 
-  // 2) Enroll
+  // 2) Course details → pick a real section index when possible
+  const detailsRes = http.get(`${baseUrl}/courses/${course.id}`, { headers });
+  let section_index = null;
+  if (detailsRes.status >= 200 && detailsRes.status < 300) {
+    const details = detailsRes.json();
+    const sections = Array.isArray(details?.sections) ? details.sections : [];
+    const indexCandidates = ['section_index', 'sectionIndex', 'index', 'order'];
+    for (const section of sections) {
+      for (const key of indexCandidates) {
+        const value = section?.[key];
+        if (Number.isInteger(value) && value >= 0) {
+          section_index = value;
+          break;
+        }
+      }
+      if (Number.isInteger(section_index)) break;
+    }
+  }
+  if (!Number.isInteger(section_index)) section_index = 0;
+
+  // 3) Enroll
   const enrollRes = http.post(
     `${baseUrl}/enroll`,
     JSON.stringify({ course_id: course.id, user_id }),
@@ -29,7 +49,7 @@ export default function (ctx) {
   );
   check(enrollRes, { enrolled: r => r.status === 200 || r.status === 201 });
 
-  // 3) Update progress (use realistic values)
+  // 4) Update progress (PUT)
   const progressRes = http.put(
     `${baseUrl}/courses/update_progress`,
     JSON.stringify({ course_id: course.id, progress: 25 }),
@@ -37,8 +57,7 @@ export default function (ctx) {
   );
   check(progressRes, { 'progress 2xx': r => r.status >= 200 && r.status < 300 });
 
-  // 4) Quiz complete (stable section index)
-  const section_index = 0;
+  // 5) Quiz complete using the discovered section index
   const quizRes = http.post(
     `${baseUrl}/courses/${course.id}/sections/${section_index}/quiz-complete`,
     null,
@@ -46,5 +65,5 @@ export default function (ctx) {
   );
   check(quizRes, { 'quiz 2xx': r => r.status >= 200 && r.status < 300 });
 
-  sleep(1); // realistic pacing
+  sleep(1);
 }
