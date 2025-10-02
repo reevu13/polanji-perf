@@ -2,21 +2,20 @@ import http from 'k6/http';
 import { check, fail } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
-import { pickFirst } from '../../src/utils.js';
+import { findCourseWithQuiz } from '../../src/utils.js';
 
 export { options };
 
 export function setup() {
   const { BASE_URL, EMAIL, PASSWORD } = __ENV;
   const auth = login(BASE_URL, EMAIL, PASSWORD);
-  const coursesRes = http.get(`${BASE_URL}/courses`, { headers: auth.headers });
-  check(coursesRes, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
-  const course = pickFirst(coursesRes.json(), c => c?.id);
-  if (!course?.id) fail('No course found for progress test');
+  const match = findCourseWithQuiz(BASE_URL, auth.headers);
+  if (!match?.courseId) fail('No course with quizzes found for progress test');
+  const courseId = match.courseId;
 
   const enrollRes = http.post(
     `${BASE_URL}/enroll`,
-    JSON.stringify({ course_id: course.id, user_id: auth.userId }),
+    JSON.stringify({ course_id: courseId, user_id: auth.userId }),
     { headers: { ...auth.headers, 'Content-Type': 'application/json' } }
   );
   check(enrollRes, {
@@ -26,7 +25,7 @@ export function setup() {
   return {
     baseUrl: BASE_URL,
     headers: auth.headers,
-    course_id: course.id,
+    course_id: courseId,
     user_id: auth.userId,
   };
 }

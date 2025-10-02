@@ -57,7 +57,7 @@ export PGPASSWORD=<your_db_password>
 EMAIL=<your_user_email> node scripts/db-validate.js
 ```
 
-`PGHOST`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` are required. Override them for other environments. The runner stores JSON summaries under `artifacts/summaries/` and converts them into `artifacts/summary-report.html`; open that HTML file in a browser to visualise latency, failure rates, and threshold status for every scenario. Set `ARTIFACT_DIR`, `SUMMARY_DIR`, or `REPORT_HTML` before invoking `scripts/run-full-suite.sh` if you want to change the output paths. The script asserts:
+`PGHOST`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` are required. Override them for other environments. The runner stores JSON summaries under `artifacts/summaries/` and converts them into `artifacts/summary-report.html`; open that HTML file in a browser to visualise latency, failure rates, and threshold status for every scenario. Set `ARTIFACT_DIR`, `SUMMARY_DIR`, or `REPORT_HTML` before invoking `scripts/run-full-suite.sh` if you want to change the output paths. Even if database validation fails, the summary report is still generated and uploaded. The script asserts:
 - `topics`/`courses` tables contain data.
 - The user exists and has an enrollment in `course_interactions`.
 - Course progress is recorded and quiz completion is stored in `course_section_quiz_progress`.

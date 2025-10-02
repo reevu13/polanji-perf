@@ -67,34 +67,51 @@ async function main() {
   const userId = user.id;
   logResult('user exists', true, `id=${userId}, role=${user.role}`);
 
-  const interaction = await client.query(
-    'SELECT course_id, course_progress, updated_at FROM course_interactions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
+  const quizProgress = await client.query(
+    'SELECT course_id, section_index, passed, passed_at FROM course_section_quiz_progress WHERE user_id = $1 ORDER BY passed_at DESC LIMIT 1',
     [userId]
   );
 
-  if (interaction.rowCount === 0) {
+  let targetCourseId = null;
+  if (quizProgress.rowCount > 0) {
+    const quiz = quizProgress.rows[0];
+    targetCourseId = quiz.course_id;
+    logResult('quiz completion record', !!quiz.passed, `course_id=${quiz.course_id}, section_index=${quiz.section_index}, passed=${quiz.passed}`);
+  } else {
+    logResult('quiz completion record', false, 'no quiz progress rows found');
+  }
+
+  const interactionQuery = targetCourseId
+    ? await client.query(
+        'SELECT course_id, course_progress, updated_at FROM course_interactions WHERE user_id = $1 AND course_id = $2 ORDER BY updated_at DESC LIMIT 1',
+        [userId, targetCourseId]
+      )
+    : await client.query(
+        'SELECT course_id, course_progress, updated_at FROM course_interactions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
+        [userId]
+      );
+
+  if (interactionQuery.rowCount === 0) {
     logResult('enrollment record', false, 'course_interactions has no rows for user');
   } else {
-    const row = interaction.rows[0];
+    const row = interactionQuery.rows[0];
     logResult('enrollment record', true, `course_id=${row.course_id}`);
     logResult('progress updated', row.course_progress !== null && row.course_progress >= 0, `progress=${row.course_progress}`);
+    targetCourseId = targetCourseId ?? row.course_id;
+  }
 
-    const sectionProgress = await client.query(
-      'SELECT section_index, passed FROM course_section_quiz_progress WHERE user_id = $1 AND course_id = $2 ORDER BY passed_at DESC LIMIT 1',
-      [userId, row.course_id]
-    );
-    if (sectionProgress.rowCount === 0) {
-      logResult('quiz completion record', false, 'no quiz progress rows found');
-    } else {
-      const quiz = sectionProgress.rows[0];
-      logResult('quiz completion record', !!quiz.passed, `section_index=${quiz.section_index}, passed=${quiz.passed}`);
-    }
-
+  if (targetCourseId !== null) {
     const sectionQuizzes = await client.query(
       'SELECT COUNT(*)::int AS count FROM section_quizzes WHERE course_id = $1',
-      [row.course_id]
+      [targetCourseId]
     );
-    logResult('section quizzes available', sectionQuizzes.rows[0].count > 0, `count=${sectionQuizzes.rows[0].count}`);
+    logResult(
+      'section quizzes available',
+      sectionQuizzes.rows[0].count > 0,
+      `course_id=${targetCourseId}, count=${sectionQuizzes.rows[0].count}`
+    );
+  } else {
+    logResult('section quizzes available', false, 'no relevant course_id to inspect');
   }
 
   await client.end();

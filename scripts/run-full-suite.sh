@@ -36,7 +36,10 @@ run_k6 quiz-complete tests/endpoints/quizComplete.test.js
 run_k6 dashboard tests/endpoints/dashboardStats.test.js
 
 echo "\n=> Database validation\n" >&2
-node scripts/db-validate.js
+db_status=0
+node scripts/db-validate.js || db_status=$?
 
 node scripts/render-report.js "$SUMMARY_DIR" "$REPORT_HTML"
 echo "\nSummary report generated at: $REPORT_HTML\n" >&2
+
+exit $db_status

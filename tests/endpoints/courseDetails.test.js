@@ -2,18 +2,16 @@ import http from 'k6/http';
 import { check, fail } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
-import { pickFirst } from '../../src/utils.js';
+import { findCourseWithQuiz } from '../../src/utils.js';
 
 export { options };
 
 export function setup() {
   const { BASE_URL, EMAIL, PASSWORD } = __ENV;
   const auth = login(BASE_URL, EMAIL, PASSWORD);
-  const coursesRes = http.get(`${BASE_URL}/courses`, { headers: auth.headers });
-  check(coursesRes, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
-  const course = pickFirst(coursesRes.json(), c => c?.id);
-  if (!course?.id) fail('No course_id found for details test');
-  return { baseUrl: BASE_URL, headers: auth.headers, course_id: course.id };
+  const match = findCourseWithQuiz(BASE_URL, auth.headers);
+  if (!match?.courseId) fail('No course found for details test');
+  return { baseUrl: BASE_URL, headers: auth.headers, course_id: match.courseId };
 }
 
 export default function (ctx) {
