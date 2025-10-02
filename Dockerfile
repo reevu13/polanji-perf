@@ -13,7 +13,8 @@ RUN apt-get update && \
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+# Use npm install because the CI runners do not keep package-lock.json in the workspace
+RUN npm install --omit=dev
 
 COPY . .
 RUN chmod +x scripts/*.sh
