@@ -25,6 +25,8 @@ jobs:
 
       - name: Run performance + DB validation suite
         run: |
+          rm -rf artifacts
+          mkdir -p artifacts
           docker run --rm \
             -e BASE_URL \
             -e EMAIL \
@@ -33,4 +35,11 @@ jobs:
             -e PGDATABASE \
             -e PGUSER \
             -e PGPASSWORD \
+            -v ${{ github.workspace }}/artifacts:/app/artifacts \
             polanji-perf
+
+      - name: Upload performance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-performance-report
+          path: artifacts

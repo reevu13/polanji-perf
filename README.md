@@ -40,7 +40,7 @@ export PASSWORD=<your_password>
 
 - **Bash loop** – `find tests -maxdepth 2 -type f \( -name '*.test.js' -o -name '*.workflow.js' \) | sort | xargs -I{} k6 run {}`
 - **Wrapper** – `scripts/run-all-tests.sh [k6 options]`
-- **Full suite + DB validation** – `scripts/run-full-suite.sh`
+- **Full suite + DB validation + HTML report** – `scripts/run-full-suite.sh`
 
 ## Database validation
 
@@ -57,7 +57,7 @@ export PGPASSWORD=<your_db_password>
 EMAIL=<your_user_email> node scripts/db-validate.js
 ```
 
-`PGHOST`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` are required. Override them for other environments. The script asserts:
+`PGHOST`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` are required. Override them for other environments. The runner stores JSON summaries under `artifacts/summaries/` and converts them into `artifacts/summary-report.html`; open that HTML file in a browser to visualise latency, failure rates, and threshold status for every scenario. Set `ARTIFACT_DIR`, `SUMMARY_DIR`, or `REPORT_HTML` before invoking `scripts/run-full-suite.sh` if you want to change the output paths. The script asserts:
 - `topics`/`courses` tables contain data.
 - The user exists and has an enrollment in `course_interactions`.
 - Course progress is recorded and quiz completion is stored in `course_section_quiz_progress`.
@@ -81,10 +81,11 @@ docker run --rm \
   -e PGDATABASE=<your_db_name> \
   -e PGUSER=<your_db_user> \
   -e PGPASSWORD=<your_db_password> \
+  -v "$(pwd)/artifacts:/app/artifacts" \
   polanji-perf
 ```
 
-Override the env vars as needed for other environments. The container’s default command is `scripts/run-full-suite.sh`.
+Override the env vars as needed for other environments. Mounting the `artifacts/` directory ensures the HTML report and JSON summaries persist after the container exits. The container’s default command is `scripts/run-full-suite.sh`.
 
 ## CI/CD (GitHub Actions)
 
@@ -98,4 +99,4 @@ The workflow in `.github/workflows/performance.yml` builds the Docker image and 
 - `PERF_DB_USER`
 - `PERF_DB_PASSWORD`
 
-The job invokes the same containerized command shown above, ensuring consistent results locally and in CI.
+The job invokes the same containerized command shown above, ensuring consistent results locally and in CI. The generated `artifacts/` folder (including `summary-report.html`) is uploaded as a workflow artifact for easy download from the Actions UI.
