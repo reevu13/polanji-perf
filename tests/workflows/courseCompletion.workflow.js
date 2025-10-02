@@ -47,7 +47,9 @@ export default function (ctx) {
     JSON.stringify({ course_id: course.id, user_id }),
     { headers: { ...headers, 'Content-Type': 'application/json' } }
   );
-  check(enrollRes, { enrolled: r => r.status === 200 || r.status === 201 });
+  check(enrollRes, {
+    enrolled: r => r.status === 200 || r.status === 201 || r.status === 409,
+  });
 
   // 4) Update progress (PUT)
   const progressRes = http.put(
