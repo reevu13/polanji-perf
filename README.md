@@ -10,7 +10,7 @@
 
 | Platform | Commands |
 | --- | --- |
-| Arch / Manjaro | `sudo pacman -Syu`<br>`sudo pacman -S k6 git curl jq nodejs npm` |
+| Arch  | `sudo pacman -Syu`<br>`sudo pacman -S k6 git curl jq nodejs npm` |
 | Debian / Ubuntu | `sudo apt-get update`<br>`sudo apt-get install -y gnupg2 ca-certificates curl git jq nodejs npm`<br>`curl -fsSL https://dl.k6.io/key.gpg \| sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg`<br>`echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \| sudo tee /etc/apt/sources.list.d/k6.list`<br>`sudo apt-get update && sudo apt-get install -y k6` |
 | macOS (Homebrew) | `brew update`<br>`brew install k6 node jq git` |
 | Windows (PowerShell + chocolatey) | `choco install -y git nodejs jq`<br>`choco install -y k6` |
@@ -51,6 +51,9 @@ export PGHOST=<your_db_host>
 export PGDATABASE=<your_db_name>
 export PGUSER=<your_db_user>
 export PGPASSWORD=<your_db_password>
+# Optional when the database requires TLS
+# export DB_SSL=true
+# export DB_SSL_STRICT=true
 EMAIL=<your_user_email> node scripts/db-validate.js
 ```
 

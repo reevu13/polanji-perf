@@ -15,6 +15,8 @@ async function main() {
     PGUSER,
     PGPASSWORD,
     PGPORT,
+    DB_SSL,
+    DB_SSL_STRICT,
     EMAIL,
   } = process.env;
 
@@ -27,9 +29,10 @@ async function main() {
   const dbName = PGDATABASE.trim();
   const dbUser = PGUSER.trim();
   const dbPassword = PGPASSWORD.trim();
-  const rawPort = (PGPORT || '5432').trim();
-  const parsedPort = Number(rawPort);
-  const dbPort = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 5432;
+  const dbPort = Number.parseInt(PGPORT ?? '', 10) || 5432;
+  const sslEnabled = String(DB_SSL ?? 'false').toLowerCase() === 'true';
+  const sslRejectUnauthorized = String(DB_SSL_STRICT ?? 'false').toLowerCase() === 'true';
+  const dbSsl = sslEnabled ? { rejectUnauthorized: sslRejectUnauthorized } : false;
 
   if (!EMAIL) {
     console.error('EMAIL environment variable is required for DB validation.');
@@ -42,7 +45,7 @@ async function main() {
     user: dbUser,
     password: dbPassword,
     port: dbPort,
-    ssl: false,
+    ssl: dbSsl,
   });
 
   await client.connect();
