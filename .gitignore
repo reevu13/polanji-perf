@@ -1,5 +1,7 @@
 # k6 outputs
 *.json
+!/package.json
+!/package-lock.json
 *.csv
 
 # dotenvs

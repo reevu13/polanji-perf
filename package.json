@@ -1,0 +1,26 @@
+{
+  "name": "polanji-perf",
+  "version": "1.0.0",
+  "description": "- Endpoints: /topics, /courses, /enroll, /courses/update_progress, /courses/{course_id}/sections/{section_index}/quiz-complete - Workflow: Course completion (sequence; pass live IDs between steps) - Test types: Load, Stress, Spike, Soak - Limits: 5–20 VUs; 1–3 minutes - No hardcoded credentials; modular; scalable; CI optional; Docker optional",
+  "main": "k6.options.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reevu13/polanji-perf.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reevu13/polanji-perf/issues"
+  },
+  "homepage": "https://github.com/reevu13/polanji-perf#readme",
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}
