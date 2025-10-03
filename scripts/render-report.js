@@ -39,11 +39,11 @@ const sections = files.map(file => {
     return { name: names[names.length - 1], metric: {} };
   };
 
-  const { name: durationMetricName, metric: httpDuration } = pickMetric(
+  const { metric: httpDuration } = pickMetric(
     'http_req_duration{expected_response:true}',
     'http_req_duration'
   );
-  const { name: failedMetricName, metric: httpFailed } = pickMetric(
+  const { metric: httpFailed } = pickMetric(
     'http_req_failed{expected_response:true}',
     'http_req_failed'
   );

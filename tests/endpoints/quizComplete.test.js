@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check, fail } from 'k6';
+import { check, fail, group } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
 import { findCourseWithQuiz } from '../../src/utils.js';
@@ -21,10 +21,12 @@ export function setup() {
 }
 
 export default function (ctx) {
-  const quizRes = http.post(
-    `${ctx.baseUrl}/courses/${ctx.course_id}/sections/${ctx.section_index}/quiz-complete`,
-    null,
-    { headers: ctx.headers }
-  );
-  check(quizRes, { 'quiz 2xx': r => r.status >= 200 && r.status < 300 });
+  group(`POST /courses/${ctx.course_id}/sections/${ctx.section_index}/quiz-complete`, () => {
+    const quizRes = http.post(
+      `${ctx.baseUrl}/courses/${ctx.course_id}/sections/${ctx.section_index}/quiz-complete`,
+      null,
+      { headers: ctx.headers, tags: { endpoint: '/courses/{course_id}/sections/{section_index}/quiz-complete' } }
+    );
+    check(quizRes, { 'quiz 2xx': r => r.status >= 200 && r.status < 300 });
+  });
 }

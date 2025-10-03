@@ -16,24 +16,30 @@ mkdir -p "$SUMMARY_DIR"
 
 run_k6() {
   local name=$1
-  shift
+  local scenario=$2
+  local script=$3
+  shift 3
   local summary_file="$SUMMARY_DIR/${name}.json"
-  echo "\n=> k6 run $* (summary → ${summary_file})\n" >&2
-  k6 run "$@" --summary-export "$summary_file"
+  echo "\n=> SCENARIO=${scenario} k6 run ${script} (summary → ${summary_file})\n" >&2
+  SCENARIO=$scenario k6 run "$script" --summary-export "$summary_file"
   echo >&2
 }
 
-run_k6 load --vus 10 --duration 2m tests/workflows/courseCompletion.workflow.js
-run_k6 stress --stage 30s:5 --stage 1m:20 --stage 30s:5 tests/workflows/courseCompletion.workflow.js
-run_k6 spike --stage 5s:1 --stage 10s:20 --stage 20s:1 tests/endpoints/topics.test.js
-run_k6 soak --vus 5 --duration 3m tests/endpoints/courses.test.js
+# Full workflow profiles
+run_k6 load-workflow load tests/workflows/courseCompletion.workflow.js
+run_k6 stress-workflow stress tests/workflows/courseCompletion.workflow.js
+run_k6 spike-workflow spike tests/workflows/courseCompletion.workflow.js
+run_k6 soak-workflow soak tests/workflows/courseCompletion.workflow.js
 
-run_k6 enroll tests/endpoints/enroll.test.js
-run_k6 progress tests/endpoints/progress.test.js
-run_k6 course-details tests/endpoints/courseDetails.test.js
-run_k6 section-quizzes tests/endpoints/sectionQuizzes.test.js
-run_k6 quiz-complete tests/endpoints/quizComplete.test.js
-run_k6 dashboard tests/endpoints/dashboardStats.test.js
+# Endpoint spot checks (use load scenario by default)
+run_k6 topics load tests/endpoints/topics.test.js
+run_k6 courses load tests/endpoints/courses.test.js
+run_k6 enroll load tests/endpoints/enroll.test.js
+run_k6 progress load tests/endpoints/progress.test.js
+run_k6 course-details load tests/endpoints/courseDetails.test.js
+run_k6 section-quizzes load tests/endpoints/sectionQuizzes.test.js
+run_k6 quiz-complete load tests/endpoints/quizComplete.test.js
+run_k6 dashboard load tests/endpoints/dashboardStats.test.js
 
 echo "\n=> Database validation\n" >&2
 db_status=0

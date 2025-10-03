@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check } from 'k6';
+import { check, group } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
 
@@ -12,6 +12,11 @@ export function setup() {
 }
 
 export default function (ctx) {
-  const res = http.get(`${ctx.baseUrl}/courses`, { headers: ctx.headers });
-  check(res, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
+  group('GET /courses', () => {
+    const res = http.get(`${ctx.baseUrl}/courses`, {
+      headers: ctx.headers,
+      tags: { endpoint: '/courses' },
+    });
+    check(res, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
+  });
 }

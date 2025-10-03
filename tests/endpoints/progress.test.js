@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check, fail } from 'k6';
+import { check, fail, group } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
 import { findCourseWithQuiz } from '../../src/utils.js';
@@ -16,7 +16,10 @@ export function setup() {
   const enrollRes = http.post(
     `${BASE_URL}/enroll`,
     JSON.stringify({ course_id: courseId, user_id: auth.userId }),
-    { headers: { ...auth.headers, 'Content-Type': 'application/json' } }
+    {
+      headers: { ...auth.headers, 'Content-Type': 'application/json' },
+      tags: { endpoint: '/enroll' },
+    }
   );
   check(enrollRes, {
     enrolled: r => r.status === 200 || r.status === 201 || r.status === 409,
@@ -31,11 +34,15 @@ export function setup() {
 }
 
 export default function (ctx) {
-  // For a self-contained test, you can fetch a course again here too.
-  const progressRes = http.put(
-    `${ctx.baseUrl}/courses/update_progress`,
-    JSON.stringify({ course_id: ctx.course_id, progress: 25 }),
-    { headers: { ...ctx.headers, 'Content-Type': 'application/json' } }
-  );
-  check(progressRes, { 'progress 2xx': r => r.status >= 200 && r.status < 300 });
+  group('PUT /courses/update_progress', () => {
+    const progressRes = http.put(
+      `${ctx.baseUrl}/courses/update_progress`,
+      JSON.stringify({ course_id: ctx.course_id, progress: 25 }),
+      {
+        headers: { ...ctx.headers, 'Content-Type': 'application/json' },
+        tags: { endpoint: '/courses/update_progress' },
+      }
+    );
+    check(progressRes, { 'progress 2xx': r => r.status >= 200 && r.status < 300 });
+  });
 }

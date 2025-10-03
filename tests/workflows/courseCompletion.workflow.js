@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { sleep, check, fail } from 'k6';
+import { sleep, check, fail, group } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
 import { findCourseWithQuiz } from '../../src/utils.js';
@@ -24,35 +24,51 @@ export function setup() {
 export default function (ctx) {
   const { baseUrl, headers, user_id, course_id, section_index } = ctx;
 
-  // 1) Verify courses endpoint remains healthy
-  const coursesRes = http.get(`${baseUrl}/courses`, { headers });
-  check(coursesRes, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
-
-  // 2) Enroll
-  const enrollRes = http.post(
-    `${baseUrl}/enroll`,
-    JSON.stringify({ course_id, user_id }),
-    { headers: { ...headers, 'Content-Type': 'application/json' } }
-  );
-  check(enrollRes, {
-    enrolled: r => r.status === 200 || r.status === 201 || r.status === 409,
+  group('GET /courses', () => {
+    const coursesRes = http.get(`${baseUrl}/courses`, {
+      headers,
+      tags: { endpoint: '/courses' },
+    });
+    check(coursesRes, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
   });
 
-  // 3) Update progress (PUT)
-  const progressRes = http.put(
-    `${baseUrl}/courses/update_progress`,
-    JSON.stringify({ course_id, progress: 25 }),
-    { headers: { ...headers, 'Content-Type': 'application/json' } }
-  );
-  check(progressRes, { 'progress 2xx': r => r.status >= 200 && r.status < 300 });
+  group('POST /enroll', () => {
+    const enrollRes = http.post(
+      `${baseUrl}/enroll`,
+      JSON.stringify({ course_id, user_id }),
+      {
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        tags: { endpoint: '/enroll' },
+      }
+    );
+    check(enrollRes, {
+      enrolled: r => r.status === 200 || r.status === 201 || r.status === 409,
+    });
+  });
 
-  // 4) Quiz complete using the discovered section index
-  const quizRes = http.post(
-    `${baseUrl}/courses/${course_id}/sections/${section_index}/quiz-complete`,
-    null,
-    { headers }
-  );
-  check(quizRes, { 'quiz 2xx': r => r.status >= 200 && r.status < 300 });
+  group('PUT /courses/update_progress', () => {
+    const progressRes = http.put(
+      `${baseUrl}/courses/update_progress`,
+      JSON.stringify({ course_id, progress: 25 }),
+      {
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        tags: { endpoint: '/courses/update_progress' },
+      }
+    );
+    check(progressRes, { 'progress 2xx': r => r.status >= 200 && r.status < 300 });
+  });
+
+  group('POST /courses/{course_id}/sections/{section_index}/quiz-complete', () => {
+    const quizRes = http.post(
+      `${baseUrl}/courses/${course_id}/sections/${section_index}/quiz-complete`,
+      null,
+      {
+        headers,
+        tags: { endpoint: '/courses/{course_id}/sections/{section_index}/quiz-complete' },
+      }
+    );
+    check(quizRes, { 'quiz 2xx': r => r.status >= 200 && r.status < 300 });
+  });
 
   sleep(1);
 }

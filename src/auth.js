@@ -8,7 +8,10 @@ export function login(baseUrl, email, password) {
     password: password,
     grant_type: 'password',
   };
-  const params = { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
+  const params = {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    tags: { endpoint: '/log_in' },
+  };
 
   // k6 will form-encode an object when this Content-Type is set
   const res = http.post(url, payload, params);

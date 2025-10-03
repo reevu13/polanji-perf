@@ -9,7 +9,10 @@ export function pickFirst(arr, predicate = () => true) {
 export function findCourseWithQuiz(baseUrl, headers = {}, options = {}) {
   const { maxCourses = 20, maxSections = 5 } = options;
 
-  const coursesRes = http.get(`${baseUrl}/courses`, { headers });
+  const coursesRes = http.get(`${baseUrl}/courses`, {
+    headers,
+    tags: { endpoint: '/courses' },
+  });
   if (coursesRes.status < 200 || coursesRes.status >= 300) return null;
 
   const courses = Array.isArray(coursesRes.json()) ? coursesRes.json() : [];
@@ -20,7 +23,10 @@ export function findCourseWithQuiz(baseUrl, headers = {}, options = {}) {
     if (!courseId) continue;
 
     let sectionIndices = [];
-    const detailsRes = http.get(`${baseUrl}/courses/${courseId}`, { headers });
+    const detailsRes = http.get(`${baseUrl}/courses/${courseId}`, {
+      headers,
+      tags: { endpoint: '/courses/{course_id}' },
+    });
     if (detailsRes.status >= 200 && detailsRes.status < 300) {
       try {
         const details = detailsRes.json();
@@ -46,7 +52,10 @@ export function findCourseWithQuiz(baseUrl, headers = {}, options = {}) {
     for (const sectionIndex of limitedSections) {
       const quizRes = http.get(
         `${baseUrl}/section-quizzes?course_id=${courseId}&section_index=${sectionIndex}`,
-        { headers }
+        {
+          headers,
+          tags: { endpoint: '/section-quizzes' },
+        }
       );
 
       if (quizRes.status >= 200 && quizRes.status < 300) {

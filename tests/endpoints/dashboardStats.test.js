@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check } from 'k6';
+import { check, group } from 'k6';
 import { login } from '../../src/auth.js';
 import { options as baseOptions } from '../../k6.options.js';
 
@@ -18,9 +18,14 @@ export function setup() {
 }
 
 export default function (ctx) {
-  const res = http.get(`${ctx.baseUrl}/dashboard/stats`, { headers: ctx.headers });
-  check(res, {
-    'stats ok': r => (r.status >= 200 && r.status < 300) || r.status === 403,
+  group('GET /dashboard/stats', () => {
+    const res = http.get(`${ctx.baseUrl}/dashboard/stats`, {
+      headers: ctx.headers,
+      tags: { endpoint: '/dashboard/stats' },
+    });
+    check(res, {
+      'stats ok': r => (r.status >= 200 && r.status < 300) || r.status === 403,
+    });
+    res.json();
   });
-  res.json();
 }

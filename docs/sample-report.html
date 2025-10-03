@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sample k6 Summary</title>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; margin: 2rem; background: #f5f7fb; }
+    section { background: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    h1 { margin-bottom: 0.5rem; }
+    h2 { margin-top: 0; font-size: 1.2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #e2e6f0; text-align: left; }
+    th { background: #eef1f8; font-weight: 600; }
+    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; color: #fff; }
+    .pass { background: #28a745; }
+    .fail { background: #dc3545; }
+    .meta { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+    .meta div { background: #eef1f8; padding: 0.6rem 0.9rem; border-radius: 6px; font-size: 0.9rem; }
+    small { color: #65728a; }
+  </style>
+</head>
+<body>
+  <h1>k6 Performance Summary (Sample)</h1>
+  <p><small>Generated 2025-10-02T12:00:00Z · Trends include p(90) / p(95) / p(99)</small></p>
+
+  <section>
+    <h2>load.json</h2>
+    <div class="meta">
+      <div><strong>Avg duration:</strong> 92.31 ms</div>
+      <div><strong>p(95) duration:</strong> 161.74 ms</div>
+      <div><strong>p(99) duration:</strong> 298.52 ms</div>
+      <div><strong>Requests:</strong> 4 056</div>
+      <div><strong>Iterations:</strong> 811</div>
+      <div><strong>Failed rate:</strong> 0.00%</div>
+      <div><strong>Checks:</strong> 3 249 passed / 0 failed</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>Threshold</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>checks</td><td>rate&gt;0.99</td><td><span class="badge pass">pass</span><small> (actual 1.000)</small></td></tr>
+        <tr><td>http_req_duration{expected_response:true}</td><td>p(95)&lt;800</td><td><span class="badge pass">pass</span><small> (actual 161.74)</small></td></tr>
+        <tr><td>http_req_duration{endpoint:/courses}</td><td>p(95)&lt;450</td><td><span class="badge pass">pass</span><small> (actual 132.44)</small></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>dashboard.json</h2>
+    <div class="meta">
+      <div><strong>Avg duration:</strong> 247.82 ms</div>
+      <div><strong>p(95) duration:</strong> 429.99 ms</div>
+      <div><strong>p(99) duration:</strong> 444.68 ms</div>
+      <div><strong>Requests:</strong> 2</div>
+      <div><strong>Iterations:</strong> 1</div>
+      <div><strong>Failed rate:</strong> 50.00%</div>
+      <div><strong>Checks:</strong> 2 passed / 0 failed</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>Threshold</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>checks</td><td>rate&gt;0.99</td><td><span class="badge pass">pass</span><small> (actual 1.000)</small></td></tr>
+        <tr><td>http_req_duration{endpoint:/dashboard/stats}</td><td>p(95)&lt;600</td><td><span class="badge pass">pass</span><small> (actual 429.99)</small></td></tr>
+        <tr><td>http_req_failed{endpoint:/dashboard/stats}</td><td>rate&lt;=0.5</td><td><span class="badge pass">pass</span><small> (actual 0.500)</small></td></tr>
+      </tbody>
+    </table>
+  </section>
+</body>
+</html>

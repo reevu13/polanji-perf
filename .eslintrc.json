@@ -1,0 +1,23 @@
+{
+  "env": {
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:import/recommended",
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  },
+  "globals": {
+    "__ENV": "readonly"
+  },
+  "rules": {
+    "no-console": "off",
+    "import/no-unresolved": "off",
+    "prefer-const": ["warn", { "ignoreReadBeforeAssign": true }]
+  }
+}

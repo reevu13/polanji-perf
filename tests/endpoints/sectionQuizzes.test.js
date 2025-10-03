@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check, fail } from 'k6';
+import { check, group } from 'k6';
 import { login } from '../../src/auth.js';
 import { options } from '../../k6.options.js';
 import { findCourseWithQuiz } from '../../src/utils.js';
@@ -32,8 +32,12 @@ export default function (ctx) {
     return;
   }
 
-  const url = `${baseUrl}/section-quizzes?course_id=${course_id}&section_index=${section_index}`;
-  const res = http.get(url, { headers, tags: { endpoint: url } });
-  check(res, { 'section-quizzes 2xx': r => r.status >= 200 && r.status < 300 });
-  res.json();
+  group(`GET /section-quizzes?course_id=${course_id}&section_index=${section_index}`, () => {
+    const res = http.get(
+      `${baseUrl}/section-quizzes?course_id=${course_id}&section_index=${section_index}`,
+      { headers, tags: { endpoint: '/section-quizzes' } }
+    );
+    check(res, { 'section-quizzes 2xx': r => r.status >= 200 && r.status < 300 });
+    res.json();
+  });
 }
