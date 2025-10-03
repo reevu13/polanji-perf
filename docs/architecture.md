@@ -2,17 +2,17 @@
 
 ```mermaid
 flowchart TD
-    runner[Test Runner (k6 CLI)] -->|uses| suite[Scripts in tests/]
-    suite -->|authenticates| login[/log_in]
-    suite -->|reads| courses[/courses]
-    suite -->|posts| enroll[/enroll]
-    suite -->|puts| progress[/courses/update_progress]
-    suite -->|posts| quiz[/courses/:course_id/sections/:section_index/quiz-complete]
-    suite -->|gets| section[/section-quizzes]
-    runner -->|exports summaries| summaries[artifacts/summaries/*.json]
-    summaries -->|render-report.js| report[HTML summary]
-    report -->|uploaded by GitHub Actions| artifact[(Workflow artifact)]
-    suite -->|validates persisted data| db[(Postgres smart_learning)]
+    runner["Test Runner (k6 CLI)"] --> suite["Scripts in tests/"]
+    suite --> login["/log_in"]
+    suite --> courses["/courses"]
+    suite --> enroll["/enroll"]
+    suite --> progress["/courses/update_progress"]
+    suite --> quiz["/courses/:id/sections/:index/quiz-complete"]
+    suite --> section["/section-quizzes"]
+    runner --> summaries["artifacts/summaries/*.json"]
+    summaries --> report["HTML summary"]
+    report --> artifact((Workflow artifact))
+    suite --> db[("Postgres smart_learning")]
 ```
 
 **Flow summary**
