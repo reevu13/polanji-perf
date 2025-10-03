@@ -23,7 +23,7 @@ run_k6() {
   local summary_file="$SUMMARY_DIR/${name}.json"
   echo "\n=> SCENARIO=${scenario} k6 run ${script} (summary → ${summary_file})\n" >&2
   set +e
-  SCENARIO=$scenario k6 run "$script" --summary-export "$summary_file"
+ SCENARIO=$scenario k6 run "$script" --summary-export "$summary_file"
   local status=$?
   set -e
   if (( status != 0 )); then
