@@ -38,7 +38,7 @@ export PASSWORD=<your_password>
 
 ### Scenarios
 
-The workflow script (`tests/workflows/courseCompletion.workflow.js`) executes the full journey – login → browse courses → enroll → update progress → complete a quiz. `k6.options.js` defines four arrival-rate presets tailored for that flow. Select the profile with `SCENARIO` (default `load`). Valid values: `load`, `stress`, `spike`, `soak`.
+The workflow script (`tests/workflows/courseCompletion.workflow.js`) executes the full journey – login → browse courses → enroll → update progress → complete a quiz. `k6.options.js` defines four arrival-rate presets (each staying within the 5–20 VU / 1–3 minute envelope) so you can exercise that flow under different shapes. Select the profile with `SCENARIO` (default `load`). Valid values: `load`, `stress`, `spike`, `soak`.
 
 ```bash
 SCENARIO=load k6 run tests/workflows/courseCompletion.workflow.js
