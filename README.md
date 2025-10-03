@@ -1,12 +1,14 @@
 # Polanji Performance Tests (k6)
 
+> k6 scenarios, endpoint tagging, and HTML/DB validation for the Polanji API.
+
 [![k6](https://img.shields.io/badge/k6-performance-blueviolet?logo=k6&logoColor=white)](https://k6.io)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![GitHub Actions](https://github.com/reevu13/polanji-perf/actions/workflows/performance.yml/badge.svg)](https://github.com/reevu13/polanji-perf/actions/workflows/performance.yml)
 
 End-to-end performance coverage for the Polanji API. The k6 suite drives individual endpoints, a ramping course-completion workflow, and a PostgreSQL validation step that confirms quiz progress persistence. Every request is tagged so we can track endpoint-specific thresholds and publish HTML summaries with `p(90)`, `p(95)` and `p(99)` trends.
 
-**Topics:** performance-testing · k6 · ramping-arrival-rate · observability · Docker · GitHub-Actions
+**Topics:** k6 · performance-testing · api · docker · github-actions
 
 ## Scope
 - Endpoints: `/topics`, `/courses`, `/enroll`, `/courses/update_progress`, `/courses/{course_id}`, `/section-quizzes`, `/courses/{course_id}/sections/{section_index}/quiz-complete`, `/dashboard/stats`
@@ -122,6 +124,9 @@ The workflow mirrors the local Docker command, publishes `artifacts/summary-repo
 
 - [Architecture & data flow](docs/architecture.md)
 - [Sample HTML report](docs/sample-report.html)
+- Sample HTML summary preview:
+
+  ![Sample summary report card](docs/sample-report.png)
 
 ## Linting & formatting
 
