@@ -11,6 +11,7 @@ cd "$ROOT_DIR"
 ARTIFACT_DIR=${ARTIFACT_DIR:-artifacts}
 SUMMARY_DIR=${SUMMARY_DIR:-$ARTIFACT_DIR/summaries}
 REPORT_HTML=${REPORT_HTML:-$ARTIFACT_DIR/summary-report.html}
+suite_status=0
 
 mkdir -p "$SUMMARY_DIR"
 
@@ -18,10 +19,17 @@ run_k6() {
   local name=$1
   local scenario=$2
   local script=$3
-  shift 3
+  shift 3 || true
   local summary_file="$SUMMARY_DIR/${name}.json"
   echo "\n=> SCENARIO=${scenario} k6 run ${script} (summary → ${summary_file})\n" >&2
+  set +e
   SCENARIO=$scenario k6 run "$script" --summary-export "$summary_file"
+  local status=$?
+  set -e
+  if (( status != 0 )); then
+    echo "WARN: k6 exited with status ${status} for ${script} (scenario ${scenario})." >&2
+    suite_status=1
+  fi
   echo >&2
 }
 
@@ -48,4 +56,8 @@ node scripts/db-validate.js || db_status=$?
 node scripts/render-report.js "$SUMMARY_DIR" "$REPORT_HTML"
 echo "\nSummary report generated at: $REPORT_HTML\n" >&2
 
-exit $db_status
+if (( db_status != 0 )); then
+  suite_status=1
+fi
+
+exit $suite_status

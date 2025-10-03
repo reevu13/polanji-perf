@@ -33,16 +33,32 @@ async function main() {
     process.exit(1);
   }
 
-  const client = new Client({
+  const config = {
     host: dbHost,
     database: dbName,
     user: dbUser,
     password: dbPassword,
     port: dbPort,
     ssl: dbSsl,
-  });
+  };
 
-  await client.connect();
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  const connectWithRetry = async (attempts = 3) => {
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      const client = new Client(config);
+      try {
+        await client.connect();
+        return client;
+      } catch (err) {
+        console.error(`Database connection attempt ${attempt} failed: ${err.message}`);
+        if (attempt === attempts) throw err;
+        await delay(1000 * attempt);
+      }
+    }
+  };
+
+  const client = await connectWithRetry();
 
   const topicsCount = await client.query('SELECT COUNT(*)::int AS count FROM topics');
   logResult(
