@@ -62,7 +62,9 @@ export const options = {
     'http_req_duration{endpoint:/courses/update_progress}': ['p(95)<500'],
     'http_req_duration{endpoint:/courses/{course_id}}': ['p(95)<500'],
     'http_req_duration{endpoint:/section-quizzes}': ['p(95)<550'],
-    'http_req_duration{endpoint:/courses/{course_id}/sections/{section_index}/quiz-complete}': ['p(95)<550'],
+    'http_req_duration{endpoint:/courses/{course_id}/sections/{section_index}/quiz-complete}': [
+      'p(95)<550',
+    ],
     'http_req_duration{endpoint:/dashboard/stats}': ['p(95)<600'],
     'http_req_failed{endpoint:/dashboard/stats}': ['rate<=0.5'],
   },

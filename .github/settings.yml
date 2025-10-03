@@ -1,5 +1,5 @@
 repository:
-  description: "k6 scenarios, endpoint tagging, and HTML/DB validation for the Polanji API"
+  description: 'k6 scenarios, endpoint tagging, and HTML/DB validation for the Polanji API'
   topics:
     - k6
     - performance-testing

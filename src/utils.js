@@ -33,10 +33,7 @@ export function findCourseWithQuiz(baseUrl, headers = {}, options = {}) {
         const sections = Array.isArray(details?.sections) ? details.sections : [];
         for (const section of sections) {
           const candidate =
-            section?.section_index ??
-            section?.sectionIndex ??
-            section?.index ??
-            section?.order;
+            section?.section_index ?? section?.sectionIndex ?? section?.index ?? section?.order;
           if (Number.isInteger(candidate) && candidate >= 0) {
             sectionIndices.push(candidate);
           }

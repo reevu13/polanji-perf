@@ -13,7 +13,7 @@ if (!fs.existsSync(summaryDir)) {
 
 const files = fs
   .readdirSync(summaryDir)
-  .filter(f => f.endsWith('.json'))
+  .filter((f) => f.endsWith('.json'))
   .sort();
 
 if (files.length === 0) {
@@ -21,13 +21,11 @@ if (files.length === 0) {
   process.exit(1);
 }
 
-const formatMs = value =>
-  value != null ? `${Number(value).toFixed(2)} ms` : 'n/a';
+const formatMs = (value) => (value != null ? `${Number(value).toFixed(2)} ms` : 'n/a');
 
-const formatRate = value =>
-  value != null ? `${(Number(value) * 100).toFixed(2)}%` : 'n/a';
+const formatRate = (value) => (value != null ? `${(Number(value) * 100).toFixed(2)}%` : 'n/a');
 
-const sections = files.map(file => {
+const sections = files.map((file) => {
   const fullPath = path.join(summaryDir, file);
   const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
   const metrics = data.metrics || {};
@@ -122,7 +120,7 @@ small { color: #65728a; }
 `;
 
 const htmlSections = sections
-  .map(section => {
+  .map((section) => {
     const duration = section.httpDuration;
     const failed = section.httpFailed;
     const reqs = section.httpReqs;
@@ -130,11 +128,9 @@ const htmlSections = sections
 
     const thresholdRows = section.thresholds.length
       ? section.thresholds
-          .map(t => {
-            const status =
-              t.passed === true ? 'pass' : t.passed === false ? 'fail' : 'n/a';
-            const badgeClass =
-              t.passed === true ? 'pass' : t.passed === false ? 'fail' : '';
+          .map((t) => {
+            const status = t.passed === true ? 'pass' : t.passed === false ? 'fail' : 'n/a';
+            const badgeClass = t.passed === true ? 'pass' : t.passed === false ? 'fail' : '';
             const actual = Number.isFinite(t.lhs) ? t.lhs.toFixed(3) : 'n/a';
             return `<tr><td>${t.metric}</td><td>${t.name}</td><td><span class="badge ${badgeClass}">${status}</span>${
               actual !== 'n/a' ? `<small> (actual ${actual})</small>` : ''

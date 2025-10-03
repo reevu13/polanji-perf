@@ -25,8 +25,11 @@ export default function (ctx) {
     const quizRes = http.post(
       `${ctx.baseUrl}/courses/${ctx.course_id}/sections/${ctx.section_index}/quiz-complete`,
       null,
-      { headers: ctx.headers, tags: { endpoint: '/courses/{course_id}/sections/{section_index}/quiz-complete' } }
+      {
+        headers: ctx.headers,
+        tags: { endpoint: '/courses/{course_id}/sections/{section_index}/quiz-complete' },
+      }
     );
-    check(quizRes, { 'quiz 2xx': r => r.status >= 200 && r.status < 300 });
+    check(quizRes, { 'quiz 2xx': (r) => r.status >= 200 && r.status < 300 });
   });
 }

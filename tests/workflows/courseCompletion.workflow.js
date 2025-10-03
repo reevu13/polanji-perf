@@ -29,20 +29,16 @@ export default function (ctx) {
       headers,
       tags: { endpoint: '/courses' },
     });
-    check(coursesRes, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
+    check(coursesRes, { 'courses 2xx': (r) => r.status >= 200 && r.status < 300 });
   });
 
   group('POST /enroll', () => {
-    const enrollRes = http.post(
-      `${baseUrl}/enroll`,
-      JSON.stringify({ course_id, user_id }),
-      {
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        tags: { endpoint: '/enroll' },
-      }
-    );
+    const enrollRes = http.post(`${baseUrl}/enroll`, JSON.stringify({ course_id, user_id }), {
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      tags: { endpoint: '/enroll' },
+    });
     check(enrollRes, {
-      enrolled: r => r.status === 200 || r.status === 201 || r.status === 409,
+      enrolled: (r) => r.status === 200 || r.status === 201 || r.status === 409,
     });
   });
 
@@ -55,7 +51,7 @@ export default function (ctx) {
         tags: { endpoint: '/courses/update_progress' },
       }
     );
-    check(progressRes, { 'progress 2xx': r => r.status >= 200 && r.status < 300 });
+    check(progressRes, { 'progress 2xx': (r) => r.status >= 200 && r.status < 300 });
   });
 
   group('POST /courses/{course_id}/sections/{section_index}/quiz-complete', () => {
@@ -67,7 +63,7 @@ export default function (ctx) {
         tags: { endpoint: '/courses/{course_id}/sections/{section_index}/quiz-complete' },
       }
     );
-    check(quizRes, { 'quiz 2xx': r => r.status >= 200 && r.status < 300 });
+    check(quizRes, { 'quiz 2xx': (r) => r.status >= 200 && r.status < 300 });
   });
 
   sleep(1);

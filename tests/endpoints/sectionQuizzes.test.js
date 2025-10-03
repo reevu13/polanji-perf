@@ -37,7 +37,7 @@ export default function (ctx) {
       `${baseUrl}/section-quizzes?course_id=${course_id}&section_index=${section_index}`,
       { headers, tags: { endpoint: '/section-quizzes' } }
     );
-    check(res, { 'section-quizzes 2xx': r => r.status >= 200 && r.status < 300 });
+    check(res, { 'section-quizzes 2xx': (r) => r.status >= 200 && r.status < 300 });
     res.json();
   });
 }

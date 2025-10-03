@@ -9,19 +9,13 @@ function logResult(name, ok, detail) {
 }
 
 async function main() {
-  const {
-    PGHOST,
-    PGDATABASE,
-    PGUSER,
-    PGPASSWORD,
-    PGPORT,
-    DB_SSL,
-    DB_SSL_STRICT,
-    EMAIL,
-  } = process.env;
+  const { PGHOST, PGDATABASE, PGUSER, PGPASSWORD, PGPORT, DB_SSL, DB_SSL_STRICT, EMAIL } =
+    process.env;
 
   if (!PGHOST || !PGDATABASE || !PGUSER || !PGPASSWORD) {
-    console.error('PGHOST, PGDATABASE, PGUSER, and PGPASSWORD environment variables are required for DB validation.');
+    console.error(
+      'PGHOST, PGDATABASE, PGUSER, and PGPASSWORD environment variables are required for DB validation.'
+    );
     process.exit(1);
   }
 
@@ -51,10 +45,18 @@ async function main() {
   await client.connect();
 
   const topicsCount = await client.query('SELECT COUNT(*)::int AS count FROM topics');
-  logResult('topics table has data', topicsCount.rows[0].count > 0, `count=${topicsCount.rows[0].count}`);
+  logResult(
+    'topics table has data',
+    topicsCount.rows[0].count > 0,
+    `count=${topicsCount.rows[0].count}`
+  );
 
   const coursesCount = await client.query('SELECT COUNT(*)::int AS count FROM courses');
-  logResult('courses table has data', coursesCount.rows[0].count > 0, `count=${coursesCount.rows[0].count}`);
+  logResult(
+    'courses table has data',
+    coursesCount.rows[0].count > 0,
+    `count=${coursesCount.rows[0].count}`
+  );
 
   const userRes = await client.query('SELECT id, role FROM users WHERE email = $1', [EMAIL]);
   if (userRes.rowCount === 0) {
@@ -76,7 +78,11 @@ async function main() {
   if (quizProgress.rowCount > 0) {
     const quiz = quizProgress.rows[0];
     targetCourseId = quiz.course_id;
-    logResult('quiz completion record', !!quiz.passed, `course_id=${quiz.course_id}, section_index=${quiz.section_index}, passed=${quiz.passed}`);
+    logResult(
+      'quiz completion record',
+      !!quiz.passed,
+      `course_id=${quiz.course_id}, section_index=${quiz.section_index}, passed=${quiz.passed}`
+    );
   } else {
     logResult('quiz completion record', false, 'no quiz progress rows found');
   }
@@ -96,7 +102,11 @@ async function main() {
   } else {
     const row = interactionQuery.rows[0];
     logResult('enrollment record', true, `course_id=${row.course_id}`);
-    logResult('progress updated', row.course_progress !== null && row.course_progress >= 0, `progress=${row.course_progress}`);
+    logResult(
+      'progress updated',
+      row.course_progress !== null && row.course_progress >= 0,
+      `progress=${row.course_progress}`
+    );
     targetCourseId = targetCourseId ?? row.course_id;
   }
 
@@ -117,7 +127,7 @@ async function main() {
   await client.end();
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

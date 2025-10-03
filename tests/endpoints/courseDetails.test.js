@@ -20,10 +20,10 @@ export default function (ctx) {
       headers: ctx.headers,
       tags: { endpoint: '/courses/{course_id}' },
     });
-    check(res, { 'details 2xx': r => r.status >= 200 && r.status < 300 });
+    check(res, { 'details 2xx': (r) => r.status >= 200 && r.status < 300 });
     const details = res.json();
     check(details, {
-      'has course_title': d => typeof d?.course_title === 'string' && d.course_title.length > 0,
+      'has course_title': (d) => typeof d?.course_title === 'string' && d.course_title.length > 0,
     });
   });
 }

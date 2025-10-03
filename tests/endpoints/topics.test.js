@@ -17,7 +17,7 @@ export default function (ctx) {
       headers: ctx.headers,
       tags: { endpoint: '/topics' },
     });
-    check(res, { 'topics 2xx': r => r.status >= 200 && r.status < 300 });
+    check(res, { 'topics 2xx': (r) => r.status >= 200 && r.status < 300 });
     res.json();
   });
 }

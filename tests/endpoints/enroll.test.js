@@ -31,10 +31,7 @@ export default function (ctx) {
       }
     );
     check(res, {
-      'enroll ok': r =>
-        r.status === 200 ||
-        r.status === 201 ||
-        r.status === 409,
+      'enroll ok': (r) => r.status === 200 || r.status === 201 || r.status === 409,
     });
   });
 }

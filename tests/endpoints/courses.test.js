@@ -17,6 +17,6 @@ export default function (ctx) {
       headers: ctx.headers,
       tags: { endpoint: '/courses' },
     });
-    check(res, { 'courses 2xx': r => r.status >= 200 && r.status < 300 });
+    check(res, { 'courses 2xx': (r) => r.status >= 200 && r.status < 300 });
   });
 }

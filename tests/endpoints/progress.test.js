@@ -22,7 +22,7 @@ export function setup() {
     }
   );
   check(enrollRes, {
-    enrolled: r => r.status === 200 || r.status === 201 || r.status === 409,
+    enrolled: (r) => r.status === 200 || r.status === 201 || r.status === 409,
   });
 
   return {
@@ -43,6 +43,6 @@ export default function (ctx) {
         tags: { endpoint: '/courses/update_progress' },
       }
     );
-    check(progressRes, { 'progress 2xx': r => r.status >= 200 && r.status < 300 });
+    check(progressRes, { 'progress 2xx': (r) => r.status >= 200 && r.status < 300 });
   });
 }

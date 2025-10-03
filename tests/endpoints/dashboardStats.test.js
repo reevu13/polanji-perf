@@ -24,7 +24,7 @@ export default function (ctx) {
       tags: { endpoint: '/dashboard/stats' },
     });
     check(res, {
-      'stats ok': r => (r.status >= 200 && r.status < 300) || r.status === 403,
+      'stats ok': (r) => (r.status >= 200 && r.status < 300) || r.status === 403,
     });
     res.json();
   });
